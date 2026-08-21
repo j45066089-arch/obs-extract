@@ -14,12 +14,14 @@ jobs:
       - name: Extract from remote OTA
         run: |
           ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --dyld --dyld-arch arm64e
-          find . -name "dyld_shared_cache*" | head -5
-          ipsw dyld extract $(find . -name "dyld_shared_cache_arm64e" | head -1) libswiftObservation -o ./out/
-          file ./out/usr/lib/swift/libswiftObservation.dylib
+          DSC=$(find . -name "dyld_shared_cache_arm64e" | head -1)
+          echo "Found cache: $DSC"
+          mkdir -p ./out
+          ipsw dyld extract "$DSC" libswiftObservation.dylib -o ./out/
+          find ./out -name "*.dylib"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: libswiftObservation
-          path: out/usr/lib/swift/libswiftObservation.dylib
+          path: out/**/*.dylib
