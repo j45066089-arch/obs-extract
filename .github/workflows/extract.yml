@@ -13,7 +13,8 @@ jobs:
 
       - name: Extract from remote OTA
         run: |
-          ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --dyld --dyld-arch arm64e
+          export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+          ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --dyld --dyld-arch arm64e --confirm
           echo "=== Downloaded files ==="
           find . -type f | head -30
           echo "=== All dyld caches ==="
