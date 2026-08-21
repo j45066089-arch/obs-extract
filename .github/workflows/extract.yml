@@ -8,8 +8,14 @@ jobs:
     steps:
       - name: Find and extract dylib
         run: |
-          find /Applications/Xcode.app -name "libswiftObservation.dylib" 2>/dev/null
-          cp $(find /Applications/Xcode.app -name "libswiftObservation.dylib" | grep iphoneos | head -1) ./libswiftObservation.dylib
+          echo "=== Searching everywhere ==="
+          find / -name "libswiftObservation.dylib" 2>/dev/null || true
+          echo "=== SDK path ==="
+          xcrun --sdk iphoneos --show-sdk-path
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "=== Swift lib path ==="
+          ls $(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/ | grep Observation || true
+          cp $(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/libswiftObservation.dylib ./libswiftObservation.dylib
           file ./libswiftObservation.dylib
 
       - name: Upload artifact
