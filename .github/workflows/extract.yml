@@ -14,14 +14,19 @@ jobs:
       - name: Extract from remote OTA
         run: |
           export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
-          ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --dyld --dyld-arch arm64e -y
-          echo "=== Downloaded files ==="
-          find . -type f | head -30
-          echo "=== All dyld caches ==="
-          find . -name "*dyld*" 2>/dev/null
+          # Hole OTA URL zuerst
+          URL=$(ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --urls --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[0]['url'] if isinstance(data,list) else list(data.values())[0])" 2>/dev/null || echo "")
+          echo "URL: $URL"
+          if [ -n "$URL" ]; then
+            ipsw extract --dyld --dyld-arch arm64e --remote "$URL" -o ./out/
+            find ./out -name "*Observation*"
+            DSC=$(find ./out -name "dyld_shared_cache_arm64e" | head -1)
+            echo "DSC: $DSC"
+            ipsw dyld extract "$DSC" libswiftObservation.dylib -o ./final/
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: libswiftObservation
-          path: "**/*.dylib"
+          path: final/**/*.dylib
