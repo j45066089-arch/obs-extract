@@ -11,10 +11,20 @@ jobs:
           export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
           brew install blacktop/tap/ipsw --formula
 
-      - name: Get OTA URLs
+      - name: Extract dylib
         run: |
           export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
-          echo "=== iOS 18 OTA URLs for iPhone11,2 ==="
-          ipsw download ota --platform ios --device iPhone11,2 --urls -y 2>&1 | head -30
-          echo "=== Latest ==="
-          ipsw download ota --platform ios --device iPhone11,2 --latest --urls -y 2>&1 | head -30
+          mkdir -p ./out
+          ipsw extract --dyld --dyld-arch arm64e --remote "https://updates.cdn-apple.com/2026WinterFCS/patches/047-83289/43B76518-EF92-48DE-A3FC-48AF2826A480/com_apple_MobileAsset_SoftwareUpdate/755a86ec4227dff2005b156a62235a43ba86be57.zip" -o ./out/
+          echo "=== Files ==="
+          find ./out -type f | head -20
+          DSC=$(find ./out -name "dyld_shared_cache_arm64e" | head -1)
+          echo "DSC: $DSC"
+          ipsw dyld extract "$DSC" libswiftObservation.dylib -o ./final/
+          find ./final -name "*.dylib"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libswiftObservation
+          path: final/**/*.dylib
