@@ -14,7 +14,14 @@ jobs:
       - name: Extract from remote OTA
         run: |
           export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
-          echo "=== OTA list ==="
-          ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --list 2>&1 | head -20
-          echo "=== download help ==="
-          ipsw download ota --help 2>&1 | grep -i "confirm\|yes\|non-interactive\|skip" || true
+          ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --dyld --dyld-arch arm64e -y
+          echo "=== Downloaded files ==="
+          find . -type f | head -30
+          echo "=== All dyld caches ==="
+          find . -name "*dyld*" 2>/dev/null
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libswiftObservation
+          path: "**/*.dylib"
