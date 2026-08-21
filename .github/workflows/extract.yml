@@ -6,17 +6,17 @@ jobs:
   extract:
     runs-on: macos-latest
     steps:
-      - name: Find and extract dylib
+      - name: Extract dylib
         run: |
-          echo "=== Searching everywhere ==="
-          find / -name "libswiftObservation.dylib" 2>/dev/null || true
-          echo "=== SDK path ==="
-          xcrun --sdk iphoneos --show-sdk-path
-          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
-          echo "=== Swift lib path ==="
-          ls $(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/ | grep Observation || true
-          cp $(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/libswiftObservation.dylib ./libswiftObservation.dylib
-          file ./libswiftObservation.dylib
+          echo "=== Xcode version ==="
+          xcodebuild -version
+          echo "=== Searching in Toolchain ==="
+          find /Applications/Xcode_26.6.app/Contents/Developer/Toolchains -name "libswiftObservation*" 2>/dev/null
+          echo "=== Searching in Platforms ==="
+          find /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform -name "libswiftObservation*" 2>/dev/null
+          echo "=== Searching in Library ==="
+          find /Library -name "libswiftObservation*" 2>/dev/null
+          echo "=== done ==="
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
