@@ -1,0 +1,19 @@
+name: Extract libswiftObservation
+on:
+  workflow_dispatch:
+
+jobs:
+  extract:
+    runs-on: macos-latest
+    steps:
+      - name: Find and extract dylib
+        run: |
+          find /Applications/Xcode.app -name "libswiftObservation.dylib" 2>/dev/null
+          cp $(find /Applications/Xcode.app -name "libswiftObservation.dylib" | grep iphoneos | head -1) ./libswiftObservation.dylib
+          file ./libswiftObservation.dylib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libswiftObservation
+          path: libswiftObservation.dylib
