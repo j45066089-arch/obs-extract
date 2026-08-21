@@ -6,24 +6,20 @@ jobs:
   extract:
     runs-on: macos-latest
     steps:
-      - name: Extract dylib from DSC
+      - name: Install ipsw
         run: |
-          # Xcode hat ein eingebautes Tool dafür
-          DYLD_CACHE=$(find /System/Library/dyld -name "dyld_shared_cache_arm64*" | head -1)
-          echo "Cache: $DYLD_CACHE"
-          # Extrahiere mit dsc_extractor
-          DSC_EXTRACTOR=$(find /Applications/Xcode_26.6.app -name "dsc_extractor.bundle" | head -1)
-          echo "Extractor: $DSC_EXTRACTOR"
-          # Nutze dyld_shared_cache_util
-          dyld_shared_cache_util -extract /tmp/dsc_out "$DYLD_CACHE" || true
-          find /tmp/dsc_out -name "libswiftObservation*" 2>/dev/null || true
-          # Alternative: ipsw tool
-          brew install blacktop/tap/ipsw
-          ipsw dyld extract "$DYLD_CACHE" libswiftObservation -o ./
-          file ./usr/lib/swift/libswiftObservation.dylib
+          export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+          brew install blacktop/tap/ipsw --formula
+
+      - name: Extract from remote OTA
+        run: |
+          ipsw download ota --platform ios --device iPhone11,2 --version 18.0 --dyld --dyld-arch arm64e
+          find . -name "dyld_shared_cache*" | head -5
+          ipsw dyld extract $(find . -name "dyld_shared_cache_arm64e" | head -1) libswiftObservation -o ./out/
+          file ./out/usr/lib/swift/libswiftObservation.dylib
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: libswiftObservation
-          path: "**/*.dylib"
+          path: out/usr/lib/swift/libswiftObservation.dylib
